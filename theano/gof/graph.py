@@ -345,7 +345,7 @@ class Variable(Node):
         self.name = name
         self.auto_name = 'auto_' + str(next(self.__count__))
 
-    def __str__(self):
+    def _str_impl(self):
         """WRITEME"""
         if self.name is not None:
             return self.name
@@ -358,8 +358,17 @@ class Variable(Node):
         else:
             return "<%s>" % str(self.type)
 
+    def __str__(self):
+        return self._str_impl()
+
     def __repr__(self):
-        return str(self)
+        str_descr = self._str_impl()
+        
+        tag_str = ''
+        if hasattr(self.tag,'test_value'):
+            tag_str=':%s\n' % repr(self.tag.test_value)
+        
+        return "%s:%s%s" %(str_descr, repr(self.type), tag_str)
 
     def clone(self):
         """Return a new Variable like self.

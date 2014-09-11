@@ -400,8 +400,29 @@ class TensorType(Type):
            debugging
         """
         return self.Variable(self, name=name)
-
-    def __str__(self):
+    
+    def _str_impl(self, short_form=True):
+        name_s = ''
+        if self.name:
+            if short_form:
+                return self.name
+            name_s = self.name + ':'
+            
+        b = self.broadcastable
+        named_broadcastable = {(): 'scalar',
+                 (False,): 'vector',
+                 (False, True): 'col',
+                 (True, False): 'row',
+                 (False, False): 'matrix'}
+        if b in named_broadcastable:
+            bcast = named_broadcastable[b]
+        else:
+            if any(b):
+                bcast = str(b)
+            else:
+                bcast = '%iD' % len(b)
+        return "%sTensorType(%s, %s)" % (name_s, str(self.dtype), bcast)
+        
         if self.name:
             return self.name
         else:
@@ -420,8 +441,11 @@ class TensorType(Type):
                     bcast = '%iD' % len(b)
             return "TensorType(%s, %s)" % (str(self.dtype), bcast)
 
+    def __str__(self):
+        return self._str_impl()
+
     def __repr__(self):
-        return str(self)
+        return self._str_impl(short_form=False)
         #"TensorType{%s, %s}" % (str(self.dtype), str(self.broadcastable))
 
     def c_declare(self, name, sub, check_input=True):
