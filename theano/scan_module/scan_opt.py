@@ -2162,6 +2162,7 @@ scan_seqopt1.register('scanOp_pushout_seqs_ops',
                       PushOutSeqScan(),
                       3,
                       'fast_run',
+                      'danger',
                       'scan')
 
 
