@@ -185,6 +185,9 @@ class DnnBase(COp):
 
 
 class DnnVersion(Op):
+
+    __props__ = ()
+
     def c_headers(self):
         return ['cudnn.h']
 
@@ -294,7 +297,8 @@ class GpuDnnConvDesc(Op):
             raise TypeError('kern must be 1D shape tensor')
 
         return Apply(self, [img_shape, kern_shape],
-                     [CDataType("cudnnConvolutionDescriptor_t")()])
+                     [CDataType("cudnnConvolutionDescriptor_t",
+                                freefunc="cudnnDestroyConvolutionDescriptor")()])
 
     def c_code(self, node, name, inputs, outputs, sub):
         img_shape, kern_shape = inputs
@@ -794,7 +798,8 @@ class GpuDnnPoolDesc(Op):
             raise RuntimeError("CuDNN pooling with padding requires CuDNN v2")
 
         return Apply(self, [],
-                     [CDataType("cudnnPoolingDescriptor_t")()])
+                     [CDataType("cudnnPoolingDescriptor_t",
+                                freefunc="cudnnDestroyPoolingDescriptor")()])
 
     def c_code(self, node, name, inputs, outputs, sub):
         desc, = outputs
@@ -1452,7 +1457,7 @@ class GpuDnnSoftmaxGrad(GpuDnnSoftmaxBase):
         sm = as_gpuarray_variable(sm)
         assert dy.ndim == 4
         assert sm.ndim == 4
-        return Apply(self, [dy, sm], [sm.type.make_variable()])
+        return Apply(self, [dy, sm], [sm.type()])
 
     def method(self):
         return """

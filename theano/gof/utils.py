@@ -3,9 +3,11 @@ import linecache
 import traceback
 import sys
 
+import numpy
 from six import iteritems
 
 from theano import config
+from theano.compat import PY3
 
 
 def simple_extract_stack(f=None, limit=None):
@@ -92,7 +94,7 @@ def add_tag_trace(thing, user_line=1):
     # The order is from the oldest to the newest
     if len(tr) > user_line:
         tr = tr[-user_line:]
-    thing.tag.trace = tr
+    thing.tag.trace = [tr]
     return thing
 
 
@@ -435,3 +437,31 @@ def remove(predicate, coll):
     [1, 3]
     """
     return [x for x in coll if not predicate(x)]
+
+
+if PY3:
+    import hashlib
+
+    def hash_from_code(msg):
+        # hashlib.md5() requires an object that supports buffer interface,
+        # but Python 3 (unicode) strings don't.
+        if isinstance(msg, str):
+            msg = msg.encode()
+        # Python 3 does not like module names that start with
+        # a digit.
+        return 'm' + hashlib.md5(msg).hexdigest()
+
+else:
+    import hashlib
+
+    def hash_from_code(msg):
+        try:
+            return hashlib.md5(msg).hexdigest()
+        except TypeError:
+            assert isinstance(msg, numpy.ndarray)
+            return hashlib.md5(numpy.getbuffer(msg)).hexdigest()
+
+
+def hash_from_file(file_path):
+    """Return the MD5 hash of a file."""
+    return hash_from_code(open(file_path, 'rb').read())
