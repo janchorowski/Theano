@@ -8,6 +8,7 @@ import unittest
 import traceback
 
 import numpy
+from six.moves import xrange
 
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
@@ -859,7 +860,8 @@ def conv_grad(mode, bs, ch, nf, rImg1, rImg2, rFlt1, rFlt2, subsample, op):
 
 
 def test_conv_grads():
-    if cuda.device_properties(cuda.active_device_number())['major'] < 3:
+    if (not cuda.dnn.dnn_available() or
+            cuda.device_properties(cuda.active_device_number())['major'] < 3):
         ops = [gemm_op]
     else:
         ops = [gemm_op, dnn_op]
