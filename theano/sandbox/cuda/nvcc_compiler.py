@@ -54,6 +54,7 @@ AddConfigVar('cuda.root',
 
 def filter_nvcc_flags(s):
     assert isinstance(s, str)
+    s = os.path.expandvars(s)
     flags = [flag for flag in s.split(' ') if flag]
     if any([f for f in flags if not f.startswith("-")]):
         raise ValueError(
